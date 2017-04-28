@@ -9,6 +9,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/image"
         android:orientation="vertical"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp">
@@ -36,6 +37,7 @@
                 android:layout_width="62dp"
                 android:layout_height="61dp"
                 android:background="@android:color/transparent"
+                android:onClick="onClickReset"
                 app:srcCompat="@drawable/restart" />
 
         </LinearLayout>
@@ -58,7 +60,7 @@
                     android:layout_centerHorizontal="true"
                     android:layout_centerVertical="true"
                     android:layout_weight="1"
-                    android:background="@android:color/darker_gray"
+                    android:background="@android:color/transparent"
                     android:drawableBottom="@drawable/pause"
                     android:ems="10"
                     android:inputType="textPersonName"
@@ -84,8 +86,8 @@
                     android:layout_alignParentStart="true"
                     android:layout_alignTop="@+id/editText8"
                     android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:drawableBottom="@drawable/water"
-                    android:background="@android:color/darker_gray"
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:text="습도"
@@ -111,8 +113,8 @@
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentRight="true"
                     android:layout_weight="1"
+                    android:background="@android:color/transparent"
                     android:drawableBottom="@drawable/sun"
-                    android:background="@android:color/darker_gray"
                     android:ems="10"
                     android:inputType="textPersonName"
                     android:text="채도"
@@ -150,6 +152,7 @@
             android:id="@+id/waterbutton"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:onClick="onClickDemandWater"
             android:text="물주기"
             android:textSize="24sp"
             tools:layout_editor_absoluteX="8dp"
