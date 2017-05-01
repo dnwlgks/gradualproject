@@ -3,17 +3,15 @@ package com.example.kimsaekwang.myapplication;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView temp = (TextView) findViewById(R.id.temp);
+  /*  TextView temp = (TextView) findViewById(R.id.temp);
     TextView humi = (TextView) findViewById(R.id.humi);
     TextView chor = (TextView) findViewById(R.id.chr);
     TextView stat = (TextView) findViewById(R.id.status);
     ImageView waterbottle=(ImageView)findViewById(R.id.waterbottle);
-
+*/
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
