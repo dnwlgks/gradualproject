@@ -24,6 +24,6 @@ public class MainActivity extends AppCompatActivity {
     public void onClickReset(View v){
 
         //온도랑 채도랑 습도 초기화 textview.setText()로 초기화 해주기
-        //상태 어떠한 상태인지 이미지 바꾸는 걸로 채크
+        //ㅂㅂㅂ상태 어떠한 상태인지 이미지 바꾸는 걸로 채크
     }
 }
