@@ -20,6 +20,19 @@ android {
     sourceSets { main { res.srcDirs = ['src/main/res', 'src/main/res/2/iconimage'] } }
 }
 
+//Paho libs Installation for mqtt client Programming
+repositories {
+    maven {
+        url "https://repo.eclipse.org/content/repositories/paho-releases/"
+    }
+}
+dependencies {
+    compile('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2') {
+        exclude module: 'support-v4'
+    }
+}
+//end..
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
