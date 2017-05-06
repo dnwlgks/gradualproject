@@ -3,6 +3,7 @@ package com.example.kimsaekwang.myapplication;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -32,14 +33,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Intent intent = new Intent(this, MqttService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         init();
 
     }
 
     public void init() {
+
+        mqttServiceStart();
 
         tempTxt = (TextView) findViewById(temp);
         soilhumiTxt = (TextView) findViewById(R.id.soilhumi);
@@ -69,6 +70,22 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void mqttServiceStart() {
+
+        //Create RestartService
+        RestartService restartService = new RestartService();
+        Intent intent = new Intent(this, MqttService.class);
+
+        IntentFilter intentFilter = new IntentFilter("com.example.kimsaekwang.myapplication.MqttService");
+
+        //Enroll Broadcast
+        registerReceiver(restartService, intentFilter);
+
+        //Start Service
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+    }
+
     // ServiceConnection 인터페이스를 구현하는 객체를 생성한다.
     private ServiceConnection mConnection = new ServiceConnection(){
 
@@ -85,4 +102,5 @@ public class MainActivity extends AppCompatActivity {
             mBound = true;
         }
     };
+
 }

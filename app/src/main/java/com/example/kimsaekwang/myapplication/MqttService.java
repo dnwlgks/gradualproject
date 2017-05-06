@@ -1,9 +1,14 @@
 package com.example.kimsaekwang.myapplication;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.CountDownTimer;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -20,6 +25,9 @@ public class MqttService extends Service implements MqttCallback, Runnable{
 
     private static final String MQTT_THREAD_NAME = "MqttService[" + MQTT_TAG + "]"; // Handler Thread ID
 
+    private static final int MILLISINFUTURE = 1000*1000;
+    private static final int COUNT_DOWN_INTERVAL = 1000;
+
     private static final String TEMP_TOPIC = "Test/Temp";// 온도 Topic
     private static final String SOILHUMI_TOPIC = "Test/Soilhumi";// 습도 Topic
     private static final String CDS_TOPIC = "Test/Cds";// 조도 Topic
@@ -32,8 +40,6 @@ public class MqttService extends Service implements MqttCallback, Runnable{
 
     private String broker = "tcp://192.168.0.3:1883";
     private String clientId = "JangGyooSeo";
-
-
 
     private MqttClient client;
     private MemoryPersistence persistence;
@@ -55,11 +61,23 @@ public class MqttService extends Service implements MqttCallback, Runnable{
         }
     }
 
+    CountDownTimer countDownTimer;
+
     @Override
     public void onCreate() {
+        unregisterRestartAlarm();
         super.onCreate();
 
         init();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        //Tast kill을 통해 서비스가 죽는걸 방지
+        startForeground(1, new Notification());
+
+        return super.onStartCommand(intent, flags, startId);
     }
 
     private void init(){
@@ -68,6 +86,22 @@ public class MqttService extends Service implements MqttCallback, Runnable{
         Thread thread = new Thread(this);
         thread.start();
 
+        countDownTimerSetting();
+        countDownTimer.start();
+    }
+
+    private void countDownTimerSetting(){
+        countDownTimer = new CountDownTimer(MILLISINFUTURE,COUNT_DOWN_INTERVAL){
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.i(MQTT_TAG, "onTick");
+            }
+
+            @Override
+            public void onFinish() {
+                Log.i(MQTT_TAG,"onFinish");
+            }
+        };
     }
 
     private void connect() {
@@ -79,7 +113,6 @@ public class MqttService extends Service implements MqttCallback, Runnable{
         } catch (MqttException e) {
             Log.d(MQTT_TAG, "Error : Create The Client Object");
         }
-
 
     }
 
@@ -112,7 +145,59 @@ public class MqttService extends Service implements MqttCallback, Runnable{
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        Log.i(MQTT_TAG, "onDestroy");
+        countDownTimer.cancel();
+
+        /**
+         * 서비스 종료 시 알람 등록을 통해 서비스 재 실행
+         */
+        registerRestartAlarm();
+    }
+
+    /**
+     * 알람 매니져에 서비스 등록
+     */
+    private void registerRestartAlarm(){
+        Log.i(MQTT_TAG, "registerRestartAlarm");
+        Intent intent = new Intent(MqttService.this,RestartService.class);
+        intent.setAction("ACTION.RESTART.MqttService");
+
+        long firstTime = SystemClock.elapsedRealtime();
+        firstTime += 1*1000;
+
+        PendingIntent sender = PendingIntent.getBroadcast(MqttService.this,0,intent,0);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        /**
+         * 알람 등록
+         */
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,firstTime,1*1000,sender);
+    }
+
+    /**
+     * 알람 매니져에 서비스 해제
+     */
+    private void unregisterRestartAlarm(){
+
+        Log.i(MQTT_TAG, "unregisterRestartAlarm");
+        Intent intent = new Intent(MqttService.this, RestartService.class);
+        intent.setAction("ACTION.RESTART.MqttService");
+        PendingIntent sender = PendingIntent.getBroadcast(MqttService.this,0,intent,0);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        /**
+         * 알람 취소
+         */
+        alarmManager.cancel(sender);
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
+        //Tast kill을 통해 서비스가 죽는걸 방지
+        startForeground(1, new Notification());
         return mBinder;
     }
 
