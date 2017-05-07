@@ -1,23 +1,30 @@
 package com.example.kimsaekwang.myapplication;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import static com.example.kimsaekwang.myapplication.R.id.cds;
-import static com.example.kimsaekwang.myapplication.R.id.temp;
-import static com.example.kimsaekwang.myapplication.R.id.waterLevel;
-
 public class MainActivity extends AppCompatActivity {
+
+    private static final String MAINACTIVITY_TAG = "MAINACTIVITY";
+
+    private static final String WATERPUMP_TOPIC = "Test/WaterPump";// 물공급 Topic
+    private static final String WATER_SUPPLY_MSG = "1";
+    private static final String SYNCHRONIZE_TOPIC = "Test/Synchronize";//동기화 Topic
+    private static final String SYNCHRONIZE_MSG = "2";
+
 
 
     private TextView tempTxt;
@@ -29,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private MqttService mqttService; // 연결 타입 서비스
     private boolean mBound = false;    // 서비스 연결 여부
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,14 +47,30 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        stat();
+    }
+
+    public void stat(){
+        SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
+        tempTxt.setText(pref.getString("temp","error"));
+        soilhumiTxt.setText(pref.getString("suilhumi","error"));
+        cdsTxt.setText(pref.getString("cds","error"));
+        waterLevelTxt.setText(pref.getString("waterLevel","error"));
+
+        //동기화된 시간도 알아볼수 있는 곳이 있었으면 좋겠다.
+    }
+
     public void init() {
 
         mqttServiceStart();
 
-        tempTxt = (TextView) findViewById(temp);
+        tempTxt = (TextView) findViewById(R.id.temp);
         soilhumiTxt = (TextView) findViewById(R.id.soilhumi);
-        cdsTxt = (TextView) findViewById(cds);
-        waterLevelTxt = (TextView) findViewById(waterLevel);
+        cdsTxt = (TextView) findViewById(R.id.cds);
+        waterLevelTxt = (TextView) findViewById(R.id.waterLevel);
         statTxt = (TextView) findViewById(R.id.status);
 
         Button waterBtn = (Button) findViewById(R.id.waterBtn);
@@ -55,16 +80,28 @@ public class MainActivity extends AppCompatActivity {
         waterBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                mqttService.waterSupply();
+                mqttService.pubMessage(WATERPUMP_TOPIC,WATER_SUPPLY_MSG);
             }
+
         });
+
         synBtn.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                tempTxt.setText(mqttService.getTemp());
-                soilhumiTxt.setText(mqttService.getSoilHumi());
-                cdsTxt.setText(mqttService.getCds());
-                waterLevelTxt.setText(mqttService.getWaterLevel());
+                mqttService.pubMessage(SYNCHRONIZE_TOPIC,SYNCHRONIZE_MSG);
+
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(2000);
+                            stat();
+                        } catch (InterruptedException e){
+                            Log.d(MAINACTIVITY_TAG, "Error : Synchronize");
+                        }
+                    }
+                });
             }
         });
 

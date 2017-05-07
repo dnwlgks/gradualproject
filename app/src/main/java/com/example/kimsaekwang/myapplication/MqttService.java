@@ -1,10 +1,12 @@
 package com.example.kimsaekwang.myapplication;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -23,18 +25,18 @@ public class MqttService extends Service implements MqttCallback, Runnable{
 
     private static final String MQTT_TAG = "MqttService"; // Debug TAG
 
-    private static final String MQTT_THREAD_NAME = "MqttService[" + MQTT_TAG + "]"; // Handler Thread ID
-
     private static final int MILLISINFUTURE = 1000*1000;
     private static final int COUNT_DOWN_INTERVAL = 1000;
+
+    private static final int SOIL_HUMI_CHECK_INTEVAL = 2*60*60*1000; // 2시간간격
 
     private static final String TEMP_TOPIC = "Test/Temp";// 온도 Topic
     private static final String SOILHUMI_TOPIC = "Test/Soilhumi";// 습도 Topic
     private static final String CDS_TOPIC = "Test/Cds";// 조도 Topic
     private static final String WATERLEVEL_TOPIC = "Test/WaterLevel";// 수위 Topic
+    private static final String WATERPUMP_TOPIC = "Test/WaterPump";// 물공급 Topic
 
     private static final String WATER_SUPPLY_MSG = "1";
-    private static final String WATERPUMP_TOPIC = "Test/WaterPump";// 물공급 Topic
 
     private int qos = 0;
 
@@ -44,13 +46,6 @@ public class MqttService extends Service implements MqttCallback, Runnable{
     private MqttClient client;
     private MemoryPersistence persistence;
     private MqttConnectOptions connOpts;
-
-    //Status Value
-    private String temp;
-    private String soilHumi;
-    private String cds;
-    private String waterLevel;
-
 
     private final IBinder mBinder = new LocalBinder();    // 컴포넌트에 반환되는 IBinder
 
@@ -62,6 +57,8 @@ public class MqttService extends Service implements MqttCallback, Runnable{
     }
 
     CountDownTimer countDownTimer;
+
+
 
     @Override
     public void onCreate() {
@@ -88,6 +85,8 @@ public class MqttService extends Service implements MqttCallback, Runnable{
 
         countDownTimerSetting();
         countDownTimer.start();
+
+        soilHumiCheck();
     }
 
     private void countDownTimerSetting(){
@@ -131,18 +130,60 @@ public class MqttService extends Service implements MqttCallback, Runnable{
         }
     }
 
-    //물 공급 버튼을 눌렀을 때
-    public void waterSupply() {
+    //msg publish
+    public void pubMessage(String topic, String msg){
         try {
-            Log.d(MQTT_TAG, "물공급버튼을 눌렀습니다.");
-            MqttMessage message = new MqttMessage(WATER_SUPPLY_MSG.getBytes());
+            Log.d(MQTT_TAG, "pubMessage");
+            MqttMessage message = new MqttMessage(msg.getBytes());
             message.setQos(qos);
-            client.publish(WATERPUMP_TOPIC, message);
+            client.publish(topic, message);
         } catch (MqttException e) {
-            Log.d(MQTT_TAG, "Error : WaterSupplyMsg Publish");
+            Log.d(MQTT_TAG, "Error : Msg Publish");
         }
 
+        if(topic.equals(WATERPUMP_TOPIC)) waterLevelCheck();
     }
+
+    private void waterLevelCheck() {
+        Thread thread = new Thread(new Runnable() {
+            SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
+
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(4000);
+                    if (Integer.parseInt(pref.getString("waterLevel", null)) <= 30){
+                        //노티피케이션을 띄워줌
+                    }
+
+                } catch (InterruptedException e) {
+                    Log.d(MQTT_TAG, "Error : 잔량체크 오류");
+                }
+
+            }
+        });
+    }
+
+    private void soilHumiCheck() {
+        Thread thread = new Thread(new Runnable() {
+            SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
+
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        if(Integer.parseInt(pref.getString("soulhumi", null)) <= 30) {
+                            pubMessage(WATERPUMP_TOPIC,WATER_SUPPLY_MSG);
+                        }
+                        Thread.sleep(SOIL_HUMI_CHECK_INTEVAL);
+                    } catch (InterruptedException e) {
+                        Log.d(MQTT_TAG, "Error : soilHumiCheck");
+                    }
+                }
+            }
+        });
+    }
+
 
     @Override
     public void onDestroy() {
@@ -209,30 +250,20 @@ public class MqttService extends Service implements MqttCallback, Runnable{
     //subscribe를 통해 받은 메시지를 처리하는 Callback Method
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        if (topic.equals(TEMP_TOPIC)) this.temp = new String(message.getPayload());
-        if (topic.equals(SOILHUMI_TOPIC)) this.soilHumi = new String(message.getPayload());
-        if (topic.equals(CDS_TOPIC)) this.cds = new String(message.getPayload());
-        if (topic.equals(WATERLEVEL_TOPIC)) this.waterLevel = new String(message.getPayload());
+        SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = pref.edit();
+        if (topic.equals(TEMP_TOPIC)) editor.putString("temp", new String(message.getPayload()));
+        if (topic.equals(SOILHUMI_TOPIC)) editor.putString("soilhumi", new String(message.getPayload()));
+        if (topic.equals(CDS_TOPIC)) editor.putString("cds", new String(message.getPayload()));
+        if (topic.equals(WATERLEVEL_TOPIC)) editor.putString("waterLevel", new String(message.getPayload()));
+
+        //동기화된 시간또한 적어주기.
+
+        editor.commit();
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
 
-    }
-
-    public String getTemp() {
-        return temp;
-    }
-
-    public String getSoilHumi() {
-        return soilHumi;
-    }
-
-    public String getCds() {
-        return cds;
-    }
-
-    public String getWaterLevel() {
-        return waterLevel;
     }
 }
