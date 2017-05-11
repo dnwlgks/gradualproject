@@ -1,7 +1,9 @@
 package com.example.kimsaekwang.myapplication;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -9,10 +11,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,12 +45,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        stat();
+ //       stat();
     }
 
     public void stat() {
         SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
-        tempTxt.setText(pref.getString("temp", "error"));
+        tempTxt.setText(pref.getString("colortemp", "error"));
         soilhumiTxt.setText(pref.getString("suilhumi", "error"));
         cdsTxt.setText(pref.getString("cds", "error"));
         waterLevelTxt.setText(pref.getString("waterLevel", "error"));
@@ -62,45 +60,45 @@ public class MainActivity extends AppCompatActivity {
 
     public void init() {
 
-        mqttServiceStart();
+    //    mqttServiceStart();
 
-        tempTxt = (TextView) findViewById(R.id.temp);
-        soilhumiTxt = (TextView) findViewById(R.id.soilhumi);
-        cdsTxt = (TextView) findViewById(R.id.cds);
-        waterLevelTxt = (TextView) findViewById(R.id.waterLevel);
-        statTxt = (TextView) findViewById(R.id.status);
-
-        Button waterBtn = (Button) findViewById(R.id.waterBtn);
-        ImageButton synBtn = (ImageButton) findViewById(R.id.synchronizedBtn);
-
-        //Enroll Btn Event
-        waterBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mqttService.pubMessage(WATERPUMP_TOPIC, WATER_SUPPLY_MSG);
-            }
-
-        });
-
-        synBtn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                mqttService.pubMessage(SYNCHRONIZE_TOPIC, SYNCHRONIZE_MSG);
-
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(4000);
-                            stat();
-                        } catch (InterruptedException e) {
-                            Log.d(MAINACTIVITY_TAG, "Error : Synchronize");
-                        }
-                    }
-                });
-            }
-        });
+////        tempTxt = (TextView) findViewById(R.id.temp);
+////        soilhumiTxt = (TextView) findViewById(R.id.soilhumi);
+////        cdsTxt = (TextView) findViewById(R.id.cds);
+////        waterLevelTxt = (TextView) findViewById(R.id.waterLevel);
+////        statTxt = (TextView) findViewById(R.id.status);
+////
+////        Button waterBtn = (Button) findViewById(R.id.waterBtn);
+////        ImageButton synBtn = (ImageButton) findViewById(R.id.synchronizedBtn);
+//
+//        //Enroll Btn Event
+//        waterBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mqttService.pubMessage(WATERPUMP_TOPIC, WATER_SUPPLY_MSG);
+//            }
+//
+//        });
+//
+//        synBtn.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                mqttService.pubMessage(SYNCHRONIZE_TOPIC, SYNCHRONIZE_MSG);
+//
+//                Thread thread = new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            Thread.sleep(4000);
+//                            stat();
+//                        } catch (InterruptedException e) {
+//                            Log.d(MAINACTIVITY_TAG, "Error : Synchronize");
+//                        }
+//                    }
+//                });
+//            }
+//        });
     }
 
     private void mqttServiceStart() {
@@ -136,4 +134,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    //Back Key를 눌렀을때
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("정말 종료하시겠습니까?");
+        builder.setPositiveButton("Yes",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //process전체 종료
+                finish();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        builder.show();
+    }
 }

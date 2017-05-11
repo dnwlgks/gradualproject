@@ -42,7 +42,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     private int qos = 0;
 
-    private String broker = "tcp://192.168.0.3:1883";
+    private String broker = "tcp://223.194.133.11:1883";
     private String clientId = "JangGyooSeo";
 
     private MqttClient client;
@@ -130,7 +130,6 @@ public class MqttService extends Service implements MqttCallback, Runnable {
         } catch (MqttException e) {
             Log.d(MQTT_TAG, "Error : Create The Client Object");
         }
-
     }
 
     @Override
@@ -318,7 +317,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
     public void messageArrived(String topic, MqttMessage message) throws Exception {
         SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        if (topic.equals(TEMP_TOPIC)) editor.putString("temp", new String(message.getPayload()));
+        if (topic.equals(TEMP_TOPIC)) editor.putString("colortemp", new String(message.getPayload()));
         if (topic.equals(SOILHUMI_TOPIC))
             editor.putString("soilhumi", new String(message.getPayload()));
         if (topic.equals(CDS_TOPIC)) editor.putString("cds", new String(message.getPayload()));
