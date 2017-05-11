@@ -17,7 +17,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    sourceSets { main { res.srcDirs = ['src/main/res', 'src/main/res/2/iconimage'] } }
+    sourceSets {
+        main { res.srcDirs = ['src/main/res', 'src/main/res/2/iconimage', 'src/main/res/menu'] }
+    }
 }
 
 //Paho libs Installation for mqtt client Programming
