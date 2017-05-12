@@ -1,17 +1,18 @@
 package com.example.kimsaekwang.myapplication;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,19 +44,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_sample, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch(id) {
+            case R.id.action_list :
+                Toast.makeText(this, "action_list",Toast.LENGTH_LONG).show();
+                break;
+            case R.id.action_settings :
+                Intent intent = new Intent(this, PreSettingsActivity.class);
+                startActivity(intent);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
- //       stat();
+        stat();
     }
 
     public void stat() {
-        SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
-        tempTxt.setText(pref.getString("colortemp", "error"));
-        soilhumiTxt.setText(pref.getString("suilhumi", "error"));
-        cdsTxt.setText(pref.getString("cds", "error"));
-        waterLevelTxt.setText(pref.getString("waterLevel", "error"));
-
-        //동기화된 시간도 알아볼수 있는 곳이 있었으면 좋겠다.
+//        SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
+//        tempTxt.setText(pref.getString("colortemp", "error"));
+//        soilhumiTxt.setText(pref.getString("suilhumi", "error"));
+//        cdsTxt.setText(pref.getString("cds", "error"));
+//        waterLevelTxt.setText(pref.getString("waterLevel", "error"));
+//
+//        //동기화된 시간도 알아볼수 있는 곳이 있었으면 좋겠다.
     }
 
     public void init() {
