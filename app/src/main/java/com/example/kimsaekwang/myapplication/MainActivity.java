@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView waterLevelTxt;
     private TextView statTxt;
 
+    private ViewPager pager;
+
     private MqttService mqttService; // 연결 타입 서비스
     private boolean mBound = false;    // 서비스 연결 여부
 
@@ -39,6 +42,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         startActivity(new Intent(this, splashActivity.class));
+
+        pager = (ViewPager) findViewById(R.id.pager);
+
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getLayoutInflater());
+
+        pager.setAdapter(adapter);
 
         init();
 
