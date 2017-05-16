@@ -42,7 +42,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     private int qos = 0;
 
-    private String broker = "tcp://223.194.133.11:1883";
+    private String broker = "tcp://172.30.1.28:1883";
     private String clientId = "JangGyooSeo";
 
     private MqttClient client;

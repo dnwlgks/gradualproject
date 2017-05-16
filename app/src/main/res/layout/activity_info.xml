@@ -51,17 +51,18 @@
                     android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/textView2"
+                    android:id="@+id/cds"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="initData"
+                    android:text="16800"
+                    android:textColor="@android:color/black"
                     android:textSize="25sp" />
 
                 <TextView
                     android:id="@+id/textView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="적정조도 initData"
+                    android:text="적정조도 15000~17000"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>
@@ -102,10 +103,11 @@
                     android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/textView5"
+                    android:id="@+id/soilhumi"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="initData"
+                    android:text="56"
+                    android:textColor="@android:color/black"
                     android:textSize="25sp" />
 
                 <TextView
@@ -153,17 +155,18 @@
                     android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/textView8"
+                    android:id="@+id/temp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="initData"
+                    android:text="22"
+                    android:textColor="@android:color/black"
                     android:textSize="25sp" />
 
                 <TextView
                     android:id="@+id/textView7"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="적정온도 initData"
+                    android:text="적정온도 20~25"
                     android:textSize="13sp" />
             </LinearLayout>
         </LinearLayout>

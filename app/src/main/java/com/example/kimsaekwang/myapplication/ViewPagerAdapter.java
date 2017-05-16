@@ -4,6 +4,7 @@ import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 /**
  * Created by 장규 on 2017-05-15.
@@ -11,10 +12,16 @@ import android.view.ViewGroup;
 
 public class ViewPagerAdapter extends PagerAdapter {
 
-    private LayoutInflater inflater;
+    private static final String VIEWPAGERADAPTER = "ViewPagerAdapter";
 
-    public ViewPagerAdapter(LayoutInflater inflater) {
+    private LayoutInflater inflater;
+    private TextView pagerNum;
+
+    private View header,header2;
+
+    public ViewPagerAdapter(LayoutInflater inflater, TextView pagerNum) {
         this.inflater = inflater;
+        this.pagerNum = pagerNum;
     }
 
     @Override
@@ -26,10 +33,12 @@ public class ViewPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
 
         View view = null;
-        if (position == 0)
-            view = inflater.inflate(R.layout.activity_main_stat, null);
-        else if (position == 1)
-            view = inflater.inflate(R.layout.activity_info, null);
+        if (position == 0) {
+            view = header;
+        }
+        else if (position == 1) {
+            view = header2;
+        }
         else
             view = null;
 
@@ -48,5 +57,13 @@ public class ViewPagerAdapter extends PagerAdapter {
     @Override
     public boolean isViewFromObject(View view, Object object) {
         return view == object;
+    }
+
+    public void setView(View view, int position){
+        if(position == 0){
+            header = view;
+        }
+        else header2 = view;
+
     }
 }
