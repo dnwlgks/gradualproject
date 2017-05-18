@@ -323,6 +323,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
         if (topic.equals(CDS_TOPIC)) editor.putString("cds", new String(message.getPayload()));
         if (topic.equals(WATERLEVEL_TOPIC))
             editor.putString("waterLevel", new String(message.getPayload()));
+        unregisterRestartAlarm();
 
         //동기화된 시간또한 적어주기.
 

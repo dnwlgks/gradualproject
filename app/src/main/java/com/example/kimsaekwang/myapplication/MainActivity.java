@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String MAINACTIVITY_TAG = "MAINACTIVITY";
 
-
     private static final String WATERPUMP_TOPIC = "Test/WaterPump";// 물공급 Topic
     private static final String WATER_SUPPLY_MSG = "1";
     private static final String SYNCHRONIZE_TOPIC = "Test/Synchronize";//동기화 Topic
@@ -41,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView waterLevelTxt;
 
     private ViewPager mViewPager;
-    private TextView pagerNum;
+    private ImageView pagerNum;
 
     private MqttService mqttService; // 연결 타입 서비스
     private boolean mBound = false;    // 서비스 연결 여부
@@ -54,8 +53,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         startActivity(new Intent(this, splashActivity.class));
-
-
 
         init();
 
@@ -106,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
         // ViewPager 생성 및 적용,이벤트
         mViewPager = (ViewPager) findViewById(pager);
-        pagerNum = (TextView) findViewById(R.id.pagerNum);
+        pagerNum = (ImageView) findViewById(R.id.pagerNum);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getLayoutInflater(), pagerNum);
         adapter.setView(header, 0);
         adapter.setView(header2, 1);
@@ -122,9 +119,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 if (position == 0)
-                    pagerNum.setText("- 1 -");
+                    pagerNum.setImageResource(R.drawable.circle);
                 else if (position == 1)
-                    pagerNum.setText("- 2 -");
+                pagerNum.setImageResource(R.drawable.circle2);
             }
 
             @Override
