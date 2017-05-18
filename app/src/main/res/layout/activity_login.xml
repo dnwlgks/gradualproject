@@ -7,15 +7,15 @@
     android:paddingRight="30dp">
 
     <TextView
-        android:text="식물의 정보를 입력하세요!"
+        android:id="@+id/textView2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/textView2"
         android:gravity="center"
-        android:textSize="30dp"
-        android:paddingBottom="20dp"/>
+        android:paddingBottom="20dp"
+        android:text="식물의 정보를 입력하세요!"
+        android:textSize="30dp" />
 
-  <LinearLayout
+    <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="horizontal"
