@@ -4,7 +4,7 @@ import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageView;
 
 /**
  * Created by 장규 on 2017-05-15.
@@ -15,11 +15,11 @@ public class ViewPagerAdapter extends PagerAdapter {
     private static final String VIEWPAGERADAPTER = "ViewPagerAdapter";
 
     private LayoutInflater inflater;
-    private TextView pagerNum;
+    private ImageView pagerNum;
 
     private View header,header2;
 
-    public ViewPagerAdapter(LayoutInflater inflater, TextView pagerNum) {
+    public ViewPagerAdapter(LayoutInflater inflater, ImageView pagerNum) {
         this.inflater = inflater;
         this.pagerNum = pagerNum;
     }
