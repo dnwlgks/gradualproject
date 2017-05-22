@@ -66,4 +66,10 @@ public class ViewPagerAdapter extends PagerAdapter {
         else header2 = view;
 
     }
+
+    @Override
+    public int getItemPosition(Object object) {
+
+        return POSITION_NONE;
+    }
 }
