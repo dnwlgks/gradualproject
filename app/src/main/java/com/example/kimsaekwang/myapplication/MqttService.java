@@ -1,7 +1,6 @@
 package com.example.kimsaekwang.myapplication;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -9,9 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
-import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -27,9 +24,6 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     private static final String MQTT_TAG = "MqttService"; // Debug TAG
 
-    private static final int MILLISINFUTURE = 1000 * 1000;
-    private static final int COUNT_DOWN_INTERVAL = 1000;
-
     private static final int SOIL_HUMI_CHECK_INTEVAL = 2 * 60 * 60 * 1000; // 2시간간격
 
     private static final String TEMP_TOPIC = "Test/Temp";// 온도 Topic
@@ -42,7 +36,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     private int qos = 0;
 
-    private String broker = "tcp://172.30.1.28:1883";
+    private String broker = "tcp://223.194.134.58:1883";
     private String clientId = "JangGyooSeo";
 
     private MqttClient client;
@@ -51,46 +45,38 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     private final IBinder mBinder = new LocalBinder();    // 컴포넌트에 반환되는 IBinder
 
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
     // 컴포넌트에 반환해줄 IBinder를 위한 클래스
     public class LocalBinder extends Binder {
         MqttService getService() {
-            return MqttService.this;
+            return MqttService.this;//현재 서비스를 반환
         }
     }
+    //콜백 인터페이스 선언
+    public interface ICallback {
+        public void recvData(String topic, String message);//액티비티에서 선언한 콜백 함수
+    }
 
-    CountDownTimer countDownTimer;
+    private ICallback mCallback;
+
+    //액티비티에서 콜백 함수를 등록하기 위함.
+    public void registerCallback(ICallback cb) {
+        this.mCallback = cb;
+    }
 
     NotificationManager nm;
 
     @Override
     public void onCreate() {
-        unregisterRestartAlarm();
         super.onCreate();
 
         init();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        //Tast kill을 통해 서비스가 죽는걸 방지
-        startForeground(1, new Notification());
-        customizedNotification(1,"GradualApplication","GradualApplication이 실행중입니다.");
-
-        /**
-         * startForeground 에서 보여주는 notification을 커스텀.
-         */
-        Notification notification;
-        Notification.Builder builder = new Notification.Builder(MqttService.this)
-                .setSmallIcon(android.R.drawable.btn_star)
-                .setContentTitle("GradualApplication")
-                .setContentText("GradualApplication이 실행중입니다.")
-                .setPriority(Notification.PRIORITY_MIN);
-        notification = builder.build();
-        nm.notify(1, notification);
-
-        return super.onStartCommand(intent, flags, startId);
-    }
 
     private void init() {
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -101,24 +87,6 @@ public class MqttService extends Service implements MqttCallback, Runnable {
         Thread thread = new Thread(this);
         thread.start();
 
-        countDownTimerSetting();
-        countDownTimer.start();
-
-        soilHumiCheck();
-    }
-
-    private void countDownTimerSetting() {
-        countDownTimer = new CountDownTimer(MILLISINFUTURE, COUNT_DOWN_INTERVAL) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                Log.i(MQTT_TAG, "onTick");
-            }
-
-            @Override
-            public void onFinish() {
-                Log.i(MQTT_TAG, "onFinish");
-            }
-        };
     }
 
     private void connect() {
@@ -161,6 +129,7 @@ public class MqttService extends Service implements MqttCallback, Runnable {
         if (topic.equals(WATERPUMP_TOPIC)) waterLevelCheck();
     }
 
+
     private void waterLevelCheck() {
         Thread thread = new Thread(new Runnable(){
             SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
@@ -181,8 +150,6 @@ public class MqttService extends Service implements MqttCallback, Runnable {
     }
 
     private void soilHumiCheck() {
-
-
         Thread thread = new Thread(new Runnable() {
             SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
 
@@ -201,57 +168,6 @@ public class MqttService extends Service implements MqttCallback, Runnable {
             }
         });
 
-    }
-
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        Log.i(MQTT_TAG, "onDestroy");
-        countDownTimer.cancel();
-
-        /**
-         * 서비스 종료 시 알람 등록을 통해 서비스 재 실행
-         */
-        registerRestartAlarm();
-    }
-
-    /**
-     * 알람 매니져에 서비스 등록
-     */
-    private void registerRestartAlarm() {
-        Log.i(MQTT_TAG, "registerRestartAlarm");
-        Intent intent = new Intent(MqttService.this, RestartService.class);
-        intent.setAction("ACTION.RESTART.MqttService");
-
-        long firstTime = SystemClock.elapsedRealtime();
-        firstTime += 1 * 1000;
-
-        PendingIntent sender = PendingIntent.getBroadcast(MqttService.this, 0, intent, 0);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        /**
-         * 알람 등록
-         */
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 1 * 1000, sender);
-    }
-
-    /**
-     * 알람 매니져에 서비스 해제
-     */
-    private void unregisterRestartAlarm() {
-
-        Log.i(MQTT_TAG, "unregisterRestartAlarm");
-        Intent intent = new Intent(MqttService.this, RestartService.class);
-        intent.setAction("ACTION.RESTART.MqttService");
-        PendingIntent sender = PendingIntent.getBroadcast(MqttService.this, 0, intent, 0);
-
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        /**
-         * 알람 취소
-         */
-        alarmManager.cancel(sender);
     }
 
     /**
@@ -284,28 +200,8 @@ public class MqttService extends Service implements MqttCallback, Runnable {
 
     }
 
-    /**
-     * startForeground 에서 보여주는 notification을 커스텀.
-     */
-    private void customizedNotification(int id, String title, String text){
-        Notification notification;
-        Notification.Builder builder = new Notification.Builder(MqttService.this)
-                .setSmallIcon(android.R.drawable.btn_star)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setPriority(Notification.PRIORITY_MIN);
-        notification = builder.build();
-        nm.notify(id, notification);
-    }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        //Tast kill을 통해 서비스가 죽는걸 방지
-        startForeground(1, new Notification());
-        customizedNotification(1,"GradualApplication","GradualApplication이 실행중입니다.");
 
-        return mBinder;
-    }
 
     @Override
     public void connectionLost(Throwable cause) {
@@ -315,19 +211,8 @@ public class MqttService extends Service implements MqttCallback, Runnable {
     //subscribe를 통해 받은 메시지를 처리하는 Callback Method
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        SharedPreferences pref = getSharedPreferences("Stat", Activity.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        if (topic.equals(TEMP_TOPIC)) editor.putString("colortemp", new String(message.getPayload()));
-        if (topic.equals(SOILHUMI_TOPIC))
-            editor.putString("soilhumi", new String(message.getPayload()));
-        if (topic.equals(CDS_TOPIC)) editor.putString("cds", new String(message.getPayload()));
-        if (topic.equals(WATERLEVEL_TOPIC))
-            editor.putString("waterLevel", new String(message.getPayload()));
-        unregisterRestartAlarm();
+        mCallback.recvData(topic,new String(message.getPayload()));
 
-        //동기화된 시간또한 적어주기.
-
-        editor.commit();
     }
 
     @Override
